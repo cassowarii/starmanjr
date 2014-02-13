@@ -1,0 +1,7 @@
+h1. Starman Jr.
+
+A program to edit the script of the Mother 1 part of Mother 1+2.
+
+Created during production of "Saturnbound Zero":http://forum.starmen.net/forum/Community/PKHack/SaturnBound-Zero/first after frustration with existing tools.
+
+This repository contains the Java source code for it.
