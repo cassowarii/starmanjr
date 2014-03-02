@@ -77,49 +77,81 @@ public class ROMHelper {
 		byte[] bytes = fileToByteArray(rom);
 		System.out.println("done");
 		// locate end of meaningful data in file
-		System.out.print("Finding end of script data in ROM...");
-		int eof = 0xF7EA00; // f7ea00 is the start of script data in the rom
-		int precision = 6;
+		System.out.print("Finding end of script pointer data in ROM...");
+		int pointerStart = 0xF27A90;
+		int eof = pointerStart; // to look at the 08/00 part
+		int precision = 9;
 		while (precision > -1) {
-			//System.out.println (precision+" ("+(1<<precision)+")");
-			while ((bytes[eof] & 0xFF) != 0xFF || (bytes[eof+1] & 0xFF) != 0xFF || (bytes[eof-1] & 0xFF) != 0xFF) {
-				eof += 1 << precision;
-			//	System.out.print("-> "+Integer.toHexString(eof));
+			while ((bytes[eof+3] & 0xFF) == 0x08 || (bytes[eof+3] & 0xFF) == 0x00) {
+				eof += 4 << precision;
 			}
-			eof -= 1 << precision;
-			//System.out.println(", finally -> "+eof);
+			eof -= 4 << precision;
 			precision--;
 		}
-		System.out.println("done, EOF is at 0x"+Integer.toHexString(eof).toUpperCase());
+		eof += 4 << (precision+1);
+		System.out.println("done, EOF is at 0x"+Integer.toHexString(eof).toUpperCase()+" (not really, but will correct itself)");
 		// now parse the thingy and create a file
 		System.out.print("Parsing data and creating script file...");
 		PrintWriter pw = new PrintWriter(new FileWriter(scriptPath));
 		String writeable = "";
 		int lineIndex = 1;
-		for (int loc = 0xF7EA00; loc < eof; loc++) { 
-			if (bytes[loc] == 0x0) {
-				// EOL
+		boolean writingCC = false;
+		// yay for loops
+		for (int ptrLoc = pointerStart; ptrLoc < eof; ptrLoc += 4) {
+			// first look up the pointer address
+			int address = 0;
+			address += bytes[ptrLoc] & 0xFF;
+			address += (bytes[ptrLoc+1] & 0xFF) << 8;
+			address += (bytes[ptrLoc+2] & 0xFF) << 16;
+			if (address == 0x100000) break; // this means we've reached the similar-looking-to-the-program-but-not-script-pointer area of the ROM
+			if (address != 0x00) {
+				// it's a "real" line
+				for (int loc = address; ; loc++) { 
+					if (!writingCC) {
+						if (bytes[loc] == 0x0) {
+							// EOL
+							pw.println(TextProcessor.addNumPrefix(writeable, lineIndex));
+							pw.println(TextProcessor.addNumEPrefix(writeable, lineIndex));
+							writeable = "";
+							lineIndex++;
+							break;
+							/*\
+							|*| FUN FACT TIME:
+							|*| it has to do 'break' rather than having a second term in the for loop,
+							|*| because it does something if it's the end of the line, and there's no
+							|*| way to distinguish between the beginning of a line and the beginning of
+							|*| the next line
+							\*/
+						} else if (bytes[loc] == 0x03 && bytes[loc+1] == 0x02) {
+							// [03 02] = [PAUSE]
+							writeable += "[PAUSE]";
+							loc++;
+							// (to skip over the 02)
+						} else if (bytes[loc] == 0x03) {
+							// first half of control code
+							writeable += "[03 ";
+							writingCC = true;
+						} else {
+							// normal character
+							writeable += charTable[bytes[loc] & 0xFF];
+						}
+					} else {
+						// second half of control code
+						String digit = Integer.toHexString(bytes[loc]&0xFF).toUpperCase();
+						if (digit.length() == 1) {
+							digit = "0"+digit;
+						}
+						writeable += digit + "]";
+						writingCC = false;
+					}
+		
+				}
+			} else {
+				// it's a 0 pointer
 				pw.println(TextProcessor.addNumPrefix(writeable, lineIndex));
 				pw.println(TextProcessor.addNumEPrefix(writeable, lineIndex));
 				writeable = "";
 				lineIndex++;
-			} else if (bytes[loc] == 0x03 && bytes[loc+1] == 0x02) {
-				// [03 02] = [PAUSE]
-				writeable += "[PAUSE]";
-				loc++;
-				// (to skip over the 02)
-			} else if (bytes[loc-1] == 0x03) {
-				// 2nd half of control code, so just write the byte as hex and call it good
-				// aside: I'm so glad Java provides things like toHexString. Isn't Java great?
-				// 							... well, usually.
-				String digit = Integer.toHexString(bytes[loc] & 0xFF).toUpperCase();
-				if (digit.length() == 1) {
-					digit = "0"+digit;
-				}
-				writeable += digit + "]";
-			} else {
-				// normal character
-				writeable += charTable[bytes[loc] & 0xFF];
 			}
 		}
 		pw.close();
@@ -165,6 +197,7 @@ public class ROMHelper {
 			for (int i = 0; i < lineToWrite.length(); i++) {
 				byte byteToWrite = (byte)0x00;
 				boolean writeByte = false;
+				try {
 				if (lineToWrite.charAt(i) != '[') {
 					// search for it in the table
 					boolean foundChar = false;
@@ -197,12 +230,19 @@ public class ROMHelper {
 					cc = cc.toUpperCase();
 					if (cc.startsWith("03")) {
 						romAsBytes[start+offset] = 0x03;
+						lineLength++;
 						offset++;
-						byteToWrite = (byte) Integer.parseInt(cc.split(" ")[1].substring(0, cc.split(" ")[1].length()-1), 16);
-						writeByte = true;
+						try {
+							byteToWrite = (byte) Integer.parseInt(cc.split(" ")[1], 16);
+							writeByte = true;
+						} catch (NumberFormatException e) {
+							System.out.println("!! Bracket problem at line "+hexLineNum+", please fix before compiling again");
+							errors++;
+						}
 					} else if (cc.compareTo("PAUSE") == 0) {
 						// ugh this is so hacky but that's the way that the table works, I guess, & we have to keep backwards compatibility
 						romAsBytes[start+offset] = 0x03;
+						lineLength++;
 						offset++;
 						// pause is 03 02
 						byteToWrite = 0x02;
@@ -216,6 +256,7 @@ public class ROMHelper {
 									// it's a 2-digit hex number!!
 									byte b = (byte) Integer.parseInt(controlCodeHexes[j], 16);
 									romAsBytes[start+offset] = b;
+									lineLength++;
 									offset++;
 								} else {
 									// it's the wrong length, but we'll just pretend it's the same as failing the try-catch
@@ -237,7 +278,6 @@ public class ROMHelper {
 								byteToWrite = (byte) search;
 								foundChar = true;
 								writeByte = true;
-								//System.out.println("finally "+charTable[search]);
 								break;
 							}
 						}
@@ -247,21 +287,27 @@ public class ROMHelper {
 						}
 					}
 				}
+				} catch (Exception e) {
+					System.out.println("!! Generic problem at line "+hexLineNum+", please fix before compiling again");
+					errors++;
+				}
 				// at the end of every character-finding loop
-				if (!writeByte) {	
+				if (writeByte) {	
 					romAsBytes[start+offset] = byteToWrite;
-					offset++;
 					lineLength++;
+					offset++;
 				}
 			}
-			// write a [00] at the end, and calculate the pointer; the bitshifting stuff is shamelessly stolen from Tomato
-			int lineLoc = start + offset - lineLength + 0x80000000;
-			romAsBytes[start+offset] = 0x00;
-			offset++;
-			romAsBytes[pointerStart+numberOfLines*4] = (byte) (lineLoc & 0x000000FF);
-			romAsBytes[pointerStart+numberOfLines*4 + 1] = (byte) (lineLoc & 0x0000FF00 >> 8);
-			romAsBytes[pointerStart+numberOfLines*4 + 2] = (byte) (lineLoc & 0x00FF0000 >> 16);
-			romAsBytes[pointerStart+numberOfLines*4 + 3] = (byte) (lineLoc >> 24);
+			if (lineLength >= 1) {
+				// write a [00] at the end, and calculate the pointer; the bitshifting stuff is shamelessly stolen from Tomato
+				int lineLoc = start + offset - lineLength + 0x08000000;
+				romAsBytes[start+offset] = 0x00;
+				offset++;
+				romAsBytes[pointerStart+numberOfLines*4] = (byte) (lineLoc & 0x000000FF);
+				romAsBytes[pointerStart+numberOfLines*4 + 1] = (byte) ((lineLoc & 0x0000FF00) >> 8);
+				romAsBytes[pointerStart+numberOfLines*4 + 2] = (byte) ((lineLoc & 0x00FF0000) >> 16);
+				romAsBytes[pointerStart+numberOfLines*4 + 3] = (byte) (lineLoc >> 24);
+			}
 			numberOfLines++;
 		}
 		System.out.print("Writing array to file...");
