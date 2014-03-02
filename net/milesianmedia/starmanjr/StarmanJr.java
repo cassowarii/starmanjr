@@ -9,10 +9,12 @@ import java.util.Random;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 public class StarmanJr extends JFrame {
 	private final Dimension BIG_TEXT = new Dimension(639, 75);
@@ -21,10 +23,12 @@ public class StarmanJr extends JFrame {
 	private static int lineNum = 1;
 	private static boolean isHex = false;
 	private static String filename;
+	private static File rom = null;
+	private static File script = null;
 	private final JFileChooser filechooser = new JFileChooser();
 
-	public final String version = "0.4";
-	public final String updateDate = "January 29, 2014";
+	public final String version = "1.0";
+	public final String updateDate = "March 2, 2014";
 
 	// this prevents two "bad number" dialogs from showing up in a row if you enter "fjdsiaofj" for the line #
 	private static boolean badNumber;
@@ -292,6 +296,7 @@ public class StarmanJr extends JFrame {
 		// these have to go before the open dialog action
 		final JMenuItem fileSave = new JMenuItem();
 		final JMenuItem fileSaveAs = new JMenuItem();
+		final JMenuItem fileCompileROM = new JMenuItem();
 		
 		// open dialog
 		Action openDialog = new AbstractAction() {
@@ -319,6 +324,7 @@ public class StarmanJr extends JFrame {
 						baseToggle.setSelected(decButton.getModel(), true);
 						fileSave.setEnabled(true);
 						fileSaveAs.setEnabled(true);
+						fileCompileROM.setEnabled(true);
 
 						openButtonPanel.setVisible(false);
 						selectorPanel.setVisible(true);
@@ -482,7 +488,11 @@ public class StarmanJr extends JFrame {
 		JLabel versionLabel = new JLabel("version "+version, JLabel.CENTER);
 		versionLabel.setPreferredSize(new Dimension(288, 10));
 		versionLabel.setFont(new Font("Sans", Font.ITALIC, 10));
-		JLabel disclaimer = new JLabel("<html><center>Programmed by broomweed<br />Based on Mother 1 Funland by JeffMan<br />(and the Mother 1+2 Tools by Tomato)<br />Last updated: "+updateDate+"</center></html>", JLabel.CENTER);
+		JLabel disclaimer = new JLabel("<html><center>Programmed by broomweed<br />"+
+						"Based on Mother 1 Funland by JeffMan<br />"+
+						"(and the Mother 1+2 Tools by Tomato)<br />"+
+						"Last updated: "+updateDate+"</center></html>",
+										JLabel.CENTER);
 		JButton closeAboutButton = new JButton("Close");
 		// make the button go down to the bottom always
 		aboutPanel.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -504,6 +514,188 @@ public class StarmanJr extends JFrame {
 		aboutDialog.setLocationRelativeTo(null);
 		aboutDialog.setSize(308, 270);
 		aboutDialog.setResizable(false);
+
+		// ROM -> script window
+		final JDialog extractROMDialog = new JDialog(this, "Extract Script from ROM", true);
+		JPanel extractROMFilePanel = new JPanel();
+		extractROMFilePanel.setLayout(new GridLayout(3, 1, 0, 3));
+		JPanel extractScriptFilePanel = new JPanel();
+		extractScriptFilePanel.setLayout(new GridLayout(3, 1, 0, 3));
+		JPanel extractROMButtonsPanel = new JPanel();
+		JLabel extractROMLabel = new JLabel("ROM to extract", JLabel.CENTER);
+		JLabel scriptLabel = new JLabel("Script to create", JLabel.CENTER);
+		final JTextField extractROMFileBox = new JTextField();
+		final JTextField extractScriptFileBox = new JTextField();
+		JButton browseExtractROMButton = new JButton("Browse");
+		JButton browseExtractScriptButton = new JButton("Browse");
+		//JButton compileROMButton = new JButton("<- Compile");
+		JButton extractROMButton = new JButton("Extract ->");
+		extractROMFilePanel.add(extractROMLabel);
+		extractROMFilePanel.add(extractROMFileBox);
+		extractROMFilePanel.add(browseExtractROMButton);
+		//romButtonsPanel.add(compileROMButton);
+		extractROMButtonsPanel.setLayout(new GridBagLayout());
+		extractROMButtonsPanel.add(extractROMButton);
+		//addAndCenter(extractROMButton, extractROMButtonsPanel);
+		extractScriptFilePanel.add(scriptLabel);
+		extractScriptFilePanel.add(extractScriptFileBox);
+		extractScriptFilePanel.add(browseExtractScriptButton);
+		JPanel extractROMWindowPanel = new JPanel();
+		extractROMWindowPanel.setLayout(new GridLayout(1, 3, 10, 0));
+		extractROMWindowPanel.add(extractROMFilePanel);
+		extractROMWindowPanel.add(extractROMButtonsPanel);
+		extractROMWindowPanel.add(extractScriptFilePanel);
+		JButton closeROMExtractPanelButton = new JButton("Close");
+		// actions to open/close the extract rom dialog
+		Action closeROMExtractAction = new AbstractAction() { public void actionPerformed(ActionEvent e) { extractROMDialog.setVisible(false); }};
+		Action openROMExtractAction = new AbstractAction() { public void actionPerformed(ActionEvent e) { extractROMDialog.setVisible(true); }};
+		closeROMExtractPanelButton.setAction(closeROMExtractAction);
+		closeROMExtractPanelButton.setText("Close");
+		// actions for the "browse" buttons
+		Action browseExtractROMAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				int didPickFile = filechooser.showOpenDialog(null);
+				if (didPickFile == JFileChooser.APPROVE_OPTION) {
+					setROM(filechooser.getSelectedFile());
+					extractROMFileBox.setText(getROM().getPath());
+				} else {
+					System.out.println("Browse for ROM cancelled.");
+				}
+			}
+		};
+		browseExtractROMButton.setAction(browseExtractROMAction);
+		browseExtractROMButton.setText("Browse");
+		Action browseScriptAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				int didPickFile = filechooser.showOpenDialog(null);
+				if (didPickFile == JFileChooser.APPROVE_OPTION) {
+					setScriptToCompile(filechooser.getSelectedFile());
+					extractScriptFileBox.setText(getScriptToCompile().getPath());
+				} else {
+					System.out.println("Browse for script cancelled.");
+				}
+			}
+		};
+		browseExtractScriptButton.setAction(browseScriptAction);
+		browseExtractScriptButton.setText("Browse");
+		// action to extract script
+		Action extract = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ROMHelper rh = new ROMHelper(new File("net/milesianmedia/starmanjr/eng_table.txt"));
+					setROM(new File(extractROMFileBox.getText()));
+					setScriptToCompile(new File(extractScriptFileBox.getText()));
+					rh.readFromROM(getROM(), getScriptToCompile().getPath());
+					setFilename(getScriptToCompile().getPath());
+					lines = TextProcessor.getLineArray(getFilename());
+					setLine(1);
+					JOptionPane.showMessageDialog(null, "Successfully extracted script!", "Success", JOptionPane.PLAIN_MESSAGE);
+				} catch (IOException ex) {
+					JOptionPane.showMessageDialog(null, "Sorry, something went wrong. Please try again.", ":(", JOptionPane.ERROR_MESSAGE);
+				} catch (NullPointerException ex) {
+					JOptionPane.showMessageDialog(null, "Make sure that you selected both files, and that the ROM file actually exists.", "!", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		};
+		extractROMButton.setAction(extract);
+		extractROMButton.setText("Extract ->");
+		
+		//romWindowPanel.setPreferredSize(new Dimension(400, 125));
+		JPanel wholeExtractROMDialogPanel = new JPanel();
+		//wholeROMDialogPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		wholeExtractROMDialogPanel.add(extractROMWindowPanel, BorderLayout.CENTER);
+		wholeExtractROMDialogPanel.add(closeROMExtractPanelButton, BorderLayout.SOUTH);
+		extractROMDialog.add(wholeExtractROMDialogPanel);
+		extractROMDialog.setLocationRelativeTo(null);
+		extractROMDialog.setSize(400, 145);
+		extractROMDialog.setResizable(false);
+
+		// script -> ROM window
+		final JDialog compileROMDialog = new JDialog(this, "Compile ROM", true);
+		JPanel compileBaseROMFilePanel = new JPanel();
+		compileBaseROMFilePanel.setLayout(new GridLayout(3, 1, 0, 3));
+		JPanel compileROMFilePanel = new JPanel();
+		compileROMFilePanel.setLayout(new GridLayout(3, 1, 0, 3));
+		JPanel compileROMButtonsPanel = new JPanel();
+		JLabel baseROMLabel = new JLabel("Base English ROM", JLabel.CENTER);
+		JLabel romToCreateLabel = new JLabel("ROM to create", JLabel.CENTER);
+		final JTextField compileROMFileBox = new JTextField();
+		final JTextField compileBaseROMFileBox = new JTextField();
+		JButton browseCompileBaseROMButton = new JButton("Browse");
+		JButton browseCompileROMButton = new JButton("Browse");
+		JButton compileROMButton = new JButton("Compile ->");
+		compileBaseROMFilePanel.add(baseROMLabel);
+		compileBaseROMFilePanel.add(compileBaseROMFileBox);
+		compileBaseROMFilePanel.add(browseCompileBaseROMButton);
+		compileROMButtonsPanel.setLayout(new GridBagLayout());
+		compileROMButtonsPanel.add(compileROMButton);
+		compileROMFilePanel.add(romToCreateLabel);
+		compileROMFilePanel.add(compileROMFileBox);
+		compileROMFilePanel.add(browseCompileROMButton);
+		JPanel compileROMWindowPanel = new JPanel();
+		compileROMWindowPanel.setLayout(new GridLayout(1, 3, 10, 0));
+		compileROMWindowPanel.add(compileBaseROMFilePanel);
+		compileROMWindowPanel.add(compileROMButtonsPanel);
+		compileROMWindowPanel.add(compileROMFilePanel);
+		JButton closeROMCompilePanelButton = new JButton("Close");
+		// actions to open/close the compile rom dialog
+		Action closeROMCompileAction = new AbstractAction() { public void actionPerformed(ActionEvent e) { compileROMDialog.setVisible(false); }};
+		Action openROMCompileAction = new AbstractAction() { public void actionPerformed(ActionEvent e) { compileROMDialog.setVisible(true); }};
+		closeROMCompilePanelButton.setAction(closeROMCompileAction);
+		closeROMCompilePanelButton.setText("Close");
+		// actions for "browse" buttons
+		Action browseCompileBaseROMAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				int didPickFile = filechooser.showOpenDialog(null);
+				if (didPickFile == JFileChooser.APPROVE_OPTION) {
+					compileBaseROMFileBox.setText(filechooser.getSelectedFile().getPath());
+				} else {
+					System.out.println("Browse for base ROM cancelled.");
+				}
+			}
+		};
+		browseCompileBaseROMButton.setAction(browseCompileBaseROMAction);
+		browseCompileBaseROMButton.setText("Browse");
+		Action browseCompileROMAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				int didPickFile = filechooser.showOpenDialog(null);
+				if (didPickFile == JFileChooser.APPROVE_OPTION) {
+					setROM(filechooser.getSelectedFile());
+					compileROMFileBox.setText(getROM().getPath());
+				} else {
+					System.out.println("Browse for ROM to compile cancelled.");
+				}
+			}
+		};
+		browseCompileROMButton.setAction(browseCompileROMAction);
+		browseCompileROMButton.setText("Browse");// action to compile script
+		Action compile = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ROMHelper rh = new ROMHelper(new File("net/milesianmedia/starmanjr/eng_table.txt"));
+					setROM(new File(compileROMFileBox.getText()));
+					rh.writeToROM(new File(compileBaseROMFileBox.getText()), getROM(), getLines());
+					JOptionPane.showMessageDialog(null, "Successfully compiled script to ROM!", "Success", JOptionPane.PLAIN_MESSAGE);
+				} catch (IOException ex) {
+					JOptionPane.showMessageDialog(null, "Please enter both files.", "!", JOptionPane.WARNING_MESSAGE);
+				} catch (NullPointerException ex) {
+					JOptionPane.showMessageDialog(null, "Make sure that:\n"
+									   +" (a) Both files have been selected.\n"
+									   +" (b) Your base ROM file actually exists.\n"
+									   +" (c) You have opened a script file in the first place.", "!", JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		};
+		compileROMButton.setAction(compile);
+		compileROMButton.setText("Compile ->");
+		JPanel wholeCompileROMDialogPanel = new JPanel();
+		//wholeROMDialogPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		wholeCompileROMDialogPanel.add(compileROMWindowPanel, BorderLayout.CENTER);
+		wholeCompileROMDialogPanel.add(closeROMCompilePanelButton, BorderLayout.SOUTH);
+		compileROMDialog.add(wholeCompileROMDialogPanel);
+		compileROMDialog.setLocationRelativeTo(null);
+		compileROMDialog.setSize(430, 145);
+		compileROMDialog.setResizable(false);
 
 		// view options dialog
 		final JFrame prefsDialog = new JFrame("Preview Options");
@@ -578,6 +770,14 @@ public class StarmanJr extends JFrame {
 		fileSaveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
 		fileSave.setEnabled(false);
 		fileSaveAs.setEnabled(false);
+		//
+		JMenuItem fileExtractROM = new JMenuItem("Extract script from ROM...");
+		fileExtractROM.setAction(openROMExtractAction);
+		fileExtractROM.setText("Extract script from ROM...");
+		fileCompileROM.setAction(openROMCompileAction);
+		fileCompileROM.setText("Compile script to ROM...");
+		fileCompileROM.setEnabled(false);
+		//
 		JMenuItem fileExit = new JMenuItem("Exit", iconExit);
 		fileExit.setMnemonic(KeyEvent.VK_C);
 		fileExit.setToolTipText("Exit the application.");
@@ -586,6 +786,9 @@ public class StarmanJr extends JFrame {
 		file.add(fileOpen);			// o Load
 		file.add(fileSave);			// v Save
 		file.add(fileSaveAs);			//   Save as...
+		file.addSeparator();			// ------------
+		file.add(fileExtractROM);		//   Extract script from ROM...
+		file.add(fileCompileROM);		//   Compile script to ROM...
 		file.addSeparator();			// ------------
 		file.add(fileExit);			// x Exit
 
@@ -787,6 +990,9 @@ public class StarmanJr extends JFrame {
 	public static String getLineAt (int i) {
 		return lines[i];
 	}
+	public static String[] getLines() {
+		return lines;
+	}
 	public static void setHex (boolean h) {
 		isHex = h;
 	}
@@ -801,6 +1007,18 @@ public class StarmanJr extends JFrame {
 	}
 	public static int getNumberOfLines () {
 		return lines.length;
+	}
+	public static void setROM (File r) {
+		rom = r;
+	}
+	public static File getROM () {
+		return rom;
+	}
+	public static void setScriptToCompile (File s) {
+		script = s;
+	}
+	public static File getScriptToCompile () {
+		return script;
 	}
 	public static void setBadNumberFlag() { badNumber = true; }
 	public static void unsetBadNumberFlag() { badNumber = false; }
