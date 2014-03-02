@@ -74,12 +74,10 @@ public class StarmanJr extends JFrame {
 		editTextArea.setWrapStyleWord(true);
 		JScrollPane editText = new JScrollPane(editTextArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		editText.setPreferredSize(BIG_TEXT);
-		//editTextArea.setEnabled(false);
 		final JTextArea commentTextArea = new JTextArea();
 		commentTextArea.setLineWrap(true);
 		commentTextArea.setWrapStyleWord(true);
 		commentTextArea.setEnabled(false);
-		//commentTextArea.setPreferredSize(new Dimension(165, 55));
 		JScrollPane commentText = new JScrollPane(commentTextArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		commentText.setPreferredSize(new Dimension(170, 53));
 		final JTextField currentLine = new JTextField(); 
@@ -89,8 +87,6 @@ public class StarmanJr extends JFrame {
 		// init menus
 		JMenu file = new JMenu("File");
 		file.setMnemonic(KeyEvent.VK_F);
-		//JMenu view = new JMenu("View");
-		//view.setMnemonic(KeyEvent.VK_V);
 		JMenu insert = new JMenu("Insert");
 		insert.setMnemonic(KeyEvent.VK_I);
 		JMenu format = new JMenu("Format");
@@ -121,8 +117,6 @@ public class StarmanJr extends JFrame {
 		previewPanel.setPreferredSize(new Dimension(464,140));
 		final PreviewFrame previewFrame = new PreviewFrame (previewFont, 28, 2);
 		previewFrame.setPreferredSize(new Dimension(464,140));
-		//JScrollPane previewScroller = new JScrollPane(previewPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		//previewScroller.setPreferredSize(new Dimension(480, 145));
 
 		JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, -5));
 		JPanel previewSpacePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -154,17 +148,11 @@ public class StarmanJr extends JFrame {
 		final ButtonGroup baseToggle = new ButtonGroup();
 		baseToggle.add(decButton);
 		baseToggle.add(hexButton);
-		//baseToggle.setSelected(decButton.getModel(), true);
 
-		//JButton jumpButton = new JButton("Go");
-		//jumpButton.setPreferredSize(new Dimension(55, 25));
-		//jumpButton.setToolTipText("Jump to specified line");
 		final JButton previewButton = new JButton("Preview");
 		previewButton.setPreferredSize(new Dimension(111,24));
-		//previewButton.setEnabled(false);
 		final JButton settingsButton = new JButton(iconGear);
 		settingsButton.setPreferredSize(new Dimension(24,24));
-		//settingsButton.setEnabled(false);
 		JButton formatButton = new JButton(iconFmt);
 		formatButton.setPreferredSize(new Dimension(24, 24));
 		
@@ -191,19 +179,15 @@ public class StarmanJr extends JFrame {
 		buttonPanel.add(openButtonPanel, BorderLayout.NORTH);
 		buttonPanel.add(selectorPanel, BorderLayout.NORTH);
 		buttonPanel.add(previewButtonPanel, BorderLayout.CENTER);
-		//buttonPanel.add(paddingPanel, BorderLayout.SOUTH);
 		commentSpacingPanel.add(commentText);
 		buttonPanel.add(commentSpacingPanel, BorderLayout.SOUTH);
 		bottomPanel.add(buttonPanel, BorderLayout.WEST);
-		//bottomPanel.add(paddingPanel);
 		previewSpacePanel.add(previewPanel, BorderLayout.NORTH);
 		previewPanel.add(previewFrame);
-		//previewPanel.setBounds(174, 0, 638, 150);
 		bottomPanel.add(previewSpacePanel, BorderLayout.CENTER);
 		textPanel.add(oldText);
 		textPanel.add(editText);
 		pack();
-		//textPanel.add(commentText);
 
 		// button-y things
 		currentLine.addActionListener(new ActionListener() {
@@ -324,7 +308,6 @@ public class StarmanJr extends JFrame {
 
 						// enable everything...
 						nextLine.setEnabled(true);
-						//prevLine.setEnabled(true);
 						currentLine.setEnabled(true);
 						previewButton.setEnabled(true);
 						settingsButton.setEnabled(true);
@@ -582,16 +565,12 @@ public class StarmanJr extends JFrame {
 		fileOpen.setToolTipText("Load a new script file.");
 		fileOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		fileOpen.setMnemonic(KeyEvent.VK_O);
-		// defined earlier
-		//JMenuItem fileSave = new JMenuItem("Save", iconSave);
 		fileSave.setAction(saveToCurrentFile);
 		fileSave.setMnemonic(KeyEvent.VK_S);
 		fileSave.setText("Save");
 		fileSave.setIcon(iconSave);
 		fileSave.setToolTipText("Save the current file.");
 		fileSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-		// defined earlier
-		//JMenuItem fileSaveAs = new JMenuItem("Save as...");
 		fileSaveAs.setAction(saveDialog);
 		fileSaveAs.setText("Save as...");
 		fileSaveAs.setMnemonic(KeyEvent.VK_A);
@@ -610,19 +589,7 @@ public class StarmanJr extends JFrame {
 		file.addSeparator();			// ------------
 		file.add(fileExit);			// x Exit
 
-		// view
-		//JCheckBoxMenuItem sbar = new JCheckBoxMenuItem("Show statusbar");
-		//sbar.setState(true);
-		//sbar.addActionListener(new ActionListener() {
-		//	public void actionPerformed(ActionEvent event) {
-		//		showHideComponent(statusbar);
-		//	}
-		//});
-		//view.add(sbar);
-		//view.add(showtool);
-
 		// insert actions
-		// DONE: Replace this with an action command!
 		Action insertBracketSymbol = new AbstractAction () { public void actionPerformed (ActionEvent e) { 
 			insertBracketThing(editTextArea, e.getActionCommand()); 
 		}};
@@ -764,7 +731,6 @@ public class StarmanJr extends JFrame {
 
 		// main menu bar
 		menubar.add(file);
-		//menubar.add(view);
 		menubar.add(insert);
 		menubar.add(format);
 		menubar.add(help);
@@ -927,9 +893,6 @@ public class StarmanJr extends JFrame {
 			text = text.replace("[03 3F]", "&,");
 			text = text.replace("[03 F0]", "&t&h&e& ");
 			text = text.replace("[03 F1]", "&a&(&n&)& ");
-			//setSize(8*scale*charWidth, 8*scale*figureOutNumberOfLines());
-			//panel.setSize(8*scale*charWidth, 8*scale*figureOutNumberOfLines());
-			//System.out.println("W:"+getWidth()+" H:"+getHeight()+" | W:"+panel.getWidth()+" H:"+getHeight());
 			repaint();
 		}
 		public String getText() { return text; }
@@ -945,8 +908,6 @@ public class StarmanJr extends JFrame {
 			this.font = fontIcon.getImage();
 			this.charWidth = width;
 			this.scale = scale;
-			//this.setOpaque(true);
-			//this.setBackground(Color.black);
 		}
 
 		private int figureOutNumberOfLines() {
@@ -964,10 +925,8 @@ public class StarmanJr extends JFrame {
 		public void paintComponent (Graphics g) {
 			int x = 1, y = 0, verticalFontOffset = 0, pauses = 0;
 			boolean faded = false;
-			//g.clearRect(0, 0, getWidth(), getHeight());
 			for(int i = 0; i < text.length(); i++) {
 				char charToDraw = text.charAt(i);
-				//System.out.print(charToDraw);
 				int charID = fontDecoder.indexOf(charToDraw);
 				if (x == charWidth+1 && charToDraw != '\n') {
 					x = 1;
@@ -1000,9 +959,6 @@ public class StarmanJr extends JFrame {
 				}
 				x++;
 			}
-			//panel.setSize(8*scale*charWidth, 8*scale*(y+1));
-			//System.out.println("window size should now be "+8*scale*(y+1));
-			//panel.setHeight(8*scale*(y+1));
 		}
 	}
 }
