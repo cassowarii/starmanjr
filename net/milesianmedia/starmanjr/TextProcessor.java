@@ -89,7 +89,6 @@ public class TextProcessor {
 		thing = thing.replaceAll("(?i)\\[BREAK]", "\n");
 		thing = thing.replaceAll("\\[03 ([0-9A-F][0-9A-F])]", "\\[03$1]");
 		thing = thing.replaceAll("(?i)\\[PAUSE]", "\n[PAUSE]");
-		//System.out.println(thing);
 		String sthing = thing.replace("[PAUSE]", "");
 		sthing = sthing.replace("[0310]", "Ninten");
 		sthing = sthing.replace("[0311]", "Lloiyd");
@@ -121,101 +120,72 @@ public class TextProcessor {
 		sthing = sthing.replaceAll("(?i)\\[OMEGA]", "}");
 		sthing = sthing.replaceAll("(?i)\\[FF]", "^");
 		sthing = sthing.replaceAll("(?i)\\[DOUBLEZERO]", "%");
-		//System.out.println("->\n"+sthing);
 		String[] split = thing.split("\n");
 		String[] ssplit = sthing.split("\n");
 		String end = "";
 		int count = 0;
 		// debug
-		System.out.println("\nAUTOFORMATTER GO");
+		//System.out.println("\nAUTOFORMATTER GO");
 		// for each line...
 		for (int i = 0; i < split.length; i++) {
 			// debug
-			System.out.println("\nLINE: "+split[i]);
+			//System.out.println("\nLINE: "+split[i]);
 			// split the line into words, one with the right lengths and one with the right codes
 			String[] supersplit = split[i].split(" ");
 			String[] superssplit = ssplit[i].split(" ");
 			// for each word...
 			for (int j = 0; j < supersplit.length; j++) {
 				// debug
-				System.out.print("WORD: "+supersplit[j]);
+				//System.out.print("WORD: "+supersplit[j]);
 				// if the word starts with @ move back a space b/c that's how it works
 				if (superssplit[j].startsWith("@")) count --;
 				// add the word's length to the char counter
 				count += superssplit[j].length();
 				// debug
-				System.out.print(" [Count "+count+"]");
-				// if it isn't too wide... (actually this line is totally unnecessary methinks since it doesn't handle anything on else anyway)
-				//if (count < width) {
-					// this handles words that are too long to fit on one line; it just splits them when it runs out of room. MOVED DOWN THERE
-					/*if (superssplit[j].length() > width -1) {
-					while (superssplit[j].length() > width -1) {
-						System.out.print("; very long -- splitting: ");
-						if (superssplit[j].startsWith("@")) {
-							end += "\n"+supersplit[j].substring(0, width);
-							System.out.print(superssplit[j].substring(0, width));
-							superssplit[j] = superssplit[j].substring(width, superssplit[j].length()-width);
-						} else {
-							end += "\n"+supersplit[j].substring(0, width-1);
-							System.out.print(superssplit[j].substring(0, width-1));
-							superssplit[j] = superssplit[j].substring(width-1, superssplit[j].length()-width+1);
-						}
-						System.out.println(" - Word is now "+superssplit[j]);
-					}
-					}*/
-					// if we're not on the last word of the line (otherwise it freaks out)
-					if (j + 1 < superssplit.length) {
-						// if a space plus the next word would fit...
-						if (count + superssplit[j+1].length() <= width -1) {
-							// debug
-							System.out.print(" <NEXT: "+superssplit[j+1]+" (F)>");
-							// add this word plus a space
-							end += supersplit[j] + " ";
-							// account for the spaces in the character counter
-							count++;
-						// if it just plain doesn't fit on a single line...
-						} else if (superssplit[j].length() > width) {
-							for (int k = 0; k < superssplit[j].length(); k+=width) {
-								if (superssplit[j].startsWith("@") && k == 0) {
-									end += "\n"+supersplit[j].substring(k, Math.min(superssplit[j].length(), k + width + 1));
-									k++;
-								} else {
-									end += "\n"+supersplit[j].substring(k, Math.min(superssplit[j].length(), k + width));
-								}
-							}
-							count = superssplit[j].length() % width;
-							System.out.print(" -> [Count "+count+"]");
-							if (count + superssplit[j+1].length() <= width -1) {
-								end += " ";
-							}
-						// if a space + the next word DOESN'T fit...
-						} else {
-							// debug
-							System.out.print(" <NEXT: "+superssplit[j+1]+" (DNF)>");
-							// ...but it would fit on a single new line
-							if (superssplit[j+1].length() < width) {
-								// add this word plus a newline
-								end += supersplit[j] + "\n";
-							// otherwise it'll do the above case
+				//System.out.print(" [Count "+count+"]");
+				// if we're not on the last word of the line (otherwise it freaks out)
+				if (j + 1 < superssplit.length) {
+					// if a space plus the next word would fit...
+					if (count + superssplit[j+1].length() <= width -1) {
+						// debug
+						System.out.print(" <NEXT: "+superssplit[j+1]+" (F)>");
+						// add this word plus a space
+						end += supersplit[j] + " ";
+						// account for the spaces in the character counter
+						count++;
+					// if it just plain doesn't fit on a single line...
+					} else if (superssplit[j].length() > width) {
+						for (int k = 0; k < superssplit[j].length(); k+=width) {
+							if (superssplit[j].startsWith("@") && k == 0) {
+								end += "\n"+supersplit[j].substring(k, Math.min(superssplit[j].length(), k + width + 1));
+								k++;
 							} else {
-								// which does its own newlines so we don't need that
-								end += supersplit[j];
+								end += "\n"+supersplit[j].substring(k, Math.min(superssplit[j].length(), k + width));
 							}
-							// reset the counter
-							count = 0;
 						}
-					// if we ARE on the last word of the line, but NOT the last line...
-					// removed this part because the autoformatter takes existing [BREAK]s to be correct anyway,
-					// so this bit is unnecessary and maybe even a bit harmful to formatting
-					} /*else if (i + 1 < ssplit.length) {
-						// 
-						if (count + ssplit[i+1].split(" ")[0].length() + 1 < width - 1) {
-							end += supersplit[j] + " ";
-						} else {
+						count = superssplit[j].length() % width;
+						System.out.print(" -> [Count "+count+"]");
+						if (count + superssplit[j+1].length() <= width -1) {
+							end += " ";
+						}
+					// if a space + the next word DOESN'T fit...
+					} else {
+						// debug
+						//System.out.print(" <NEXT: "+superssplit[j+1]+" (DNF)>");
+						// ...but it would fit on a single new line
+						if (superssplit[j+1].length() < width) {
+							// add this word plus a newline
 							end += supersplit[j] + "\n";
-							count = 0;
+						// otherwise it'll do the above case
+						} else {
+							// which does its own newlines so we don't need that
+							end += supersplit[j];
 						}
-					}*/ else {
+						// reset the counter
+						count = 0;
+					}
+				// if we ARE on the last word of the line, but NOT the last line...
+				} else {
 						// if the LAST word is too big for the line, then do this
 						if (superssplit[j].length() > width) {
 							for (int k = 0; k < superssplit[j].length(); k+=width) {
@@ -227,23 +197,15 @@ public class TextProcessor {
 								}
 							}
 							count = superssplit[j].length() % width;
-							System.out.print(" -> [Count "+count+"]");
+							// debug
+							//System.out.print(" -> [Count "+count+"]");
 						// otherwise act normal
 						} else {
 							// debug
-							System.out.print(" <LAST>");
+							//System.out.print(" <LAST>");
 							end += supersplit[j];
 						}
-					}
-				/*} else {
-					if (superssplit.length == 1) {
-						end += "\n" + supersplit[j];
-						count = superssplit[j].length();
-					} else {
-						end += "\n" + supersplit[j] + " ";
-						count = superssplit[j].length() + 1;
-					}
-				}*/
+				}
 				System.out.print("\n");
 			}
 			if (i < split.length - 1) {
