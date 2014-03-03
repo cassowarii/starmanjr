@@ -124,31 +124,21 @@ public class TextProcessor {
 		String[] ssplit = sthing.split("\n");
 		String end = "";
 		int count = 0;
-		// debug
-		//System.out.println("\nAUTOFORMATTER GO");
 		// for each line...
 		for (int i = 0; i < split.length; i++) {
-			// debug
-			//System.out.println("\nLINE: "+split[i]);
 			// split the line into words, one with the right lengths and one with the right codes
 			String[] supersplit = split[i].split(" ");
 			String[] superssplit = ssplit[i].split(" ");
 			// for each word...
 			for (int j = 0; j < supersplit.length; j++) {
-				// debug
-				//System.out.print("WORD: "+supersplit[j]);
 				// if the word starts with @ move back a space b/c that's how it works
 				if (superssplit[j].startsWith("@")) count --;
 				// add the word's length to the char counter
 				count += superssplit[j].length();
-				// debug
-				//System.out.print(" [Count "+count+"]");
 				// if we're not on the last word of the line (otherwise it freaks out)
 				if (j + 1 < superssplit.length) {
 					// if a space plus the next word would fit...
 					if (count + superssplit[j+1].length() <= width -1) {
-						// debug
-						System.out.print(" <NEXT: "+superssplit[j+1]+" (F)>");
 						// add this word plus a space
 						end += supersplit[j] + " ";
 						// account for the spaces in the character counter
@@ -164,14 +154,11 @@ public class TextProcessor {
 							}
 						}
 						count = superssplit[j].length() % width;
-						System.out.print(" -> [Count "+count+"]");
 						if (count + superssplit[j+1].length() <= width -1) {
 							end += " ";
 						}
 					// if a space + the next word DOESN'T fit...
 					} else {
-						// debug
-						//System.out.print(" <NEXT: "+superssplit[j+1]+" (DNF)>");
 						// ...but it would fit on a single new line
 						if (superssplit[j+1].length() < width) {
 							// add this word plus a newline
@@ -197,16 +184,11 @@ public class TextProcessor {
 								}
 							}
 							count = superssplit[j].length() % width;
-							// debug
-							//System.out.print(" -> [Count "+count+"]");
 						// otherwise act normal
 						} else {
-							// debug
-							//System.out.print(" <LAST>");
 							end += supersplit[j];
 						}
 				}
-				System.out.print("\n");
 			}
 			if (i < split.length - 1) {
 				end += "\n";

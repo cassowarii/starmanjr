@@ -6,6 +6,9 @@ import java.lang.NumberFormatException;
 
 import java.util.Random;
 
+import java.net.URISyntaxException;
+import java.net.URL;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
@@ -26,6 +29,7 @@ public class StarmanJr extends JFrame {
 	private static File rom = null;
 	private static File script = null;
 	private final JFileChooser filechooser = new JFileChooser();
+	private File table = new File("resources/eng_table.txt");
 
 	public final String version = "1.0";
 	public final String updateDate = "March 2, 2014";
@@ -65,6 +69,15 @@ public class StarmanJr extends JFrame {
 		ImageIcon logo = new ImageIcon(getClass().getResource("images/logo.gif"));
 
 		final ImageIcon previewFont = new ImageIcon(getClass().getResource("images/font.png"));
+
+		// get table
+		//URL tableURL = this.getClass().getResource("/net/milesianmedia/starmanjr/resources/eng_table.txt");
+	//	try {
+	//	table = new File(getClass().getClassLoader().getResource("resources/eng_table.txt").getFile());
+	//	} catch (Exception e) {
+	//		table = new File(tableURL.getPath());
+	//	}
+
 		
 		// init textareas
 		final JTextArea oldTextArea = new JTextArea();
@@ -528,15 +541,12 @@ public class StarmanJr extends JFrame {
 		final JTextField extractScriptFileBox = new JTextField();
 		JButton browseExtractROMButton = new JButton("Browse");
 		JButton browseExtractScriptButton = new JButton("Browse");
-		//JButton compileROMButton = new JButton("<- Compile");
 		JButton extractROMButton = new JButton("Extract ->");
 		extractROMFilePanel.add(extractROMLabel);
 		extractROMFilePanel.add(extractROMFileBox);
 		extractROMFilePanel.add(browseExtractROMButton);
-		//romButtonsPanel.add(compileROMButton);
 		extractROMButtonsPanel.setLayout(new GridBagLayout());
 		extractROMButtonsPanel.add(extractROMButton);
-		//addAndCenter(extractROMButton, extractROMButtonsPanel);
 		extractScriptFilePanel.add(scriptLabel);
 		extractScriptFilePanel.add(extractScriptFileBox);
 		extractScriptFilePanel.add(browseExtractScriptButton);
@@ -582,7 +592,7 @@ public class StarmanJr extends JFrame {
 		Action extract = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					ROMHelper rh = new ROMHelper(new File("net/milesianmedia/starmanjr/eng_table.txt"));
+					ROMHelper rh = new ROMHelper(getTable());
 					setROM(new File(extractROMFileBox.getText()));
 					setScriptToCompile(new File(extractScriptFileBox.getText()));
 					rh.readFromROM(getROM(), getScriptToCompile().getPath());
@@ -600,9 +610,7 @@ public class StarmanJr extends JFrame {
 		extractROMButton.setAction(extract);
 		extractROMButton.setText("Extract ->");
 		
-		//romWindowPanel.setPreferredSize(new Dimension(400, 125));
 		JPanel wholeExtractROMDialogPanel = new JPanel();
-		//wholeROMDialogPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		wholeExtractROMDialogPanel.add(extractROMWindowPanel, BorderLayout.CENTER);
 		wholeExtractROMDialogPanel.add(closeROMExtractPanelButton, BorderLayout.SOUTH);
 		extractROMDialog.add(wholeExtractROMDialogPanel);
@@ -668,11 +676,12 @@ public class StarmanJr extends JFrame {
 			}
 		};
 		browseCompileROMButton.setAction(browseCompileROMAction);
-		browseCompileROMButton.setText("Browse");// action to compile script
+		browseCompileROMButton.setText("Browse");
+		// action to compile script
 		Action compile = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					ROMHelper rh = new ROMHelper(new File("net/milesianmedia/starmanjr/eng_table.txt"));
+					ROMHelper rh = new ROMHelper(getTable());
 					setROM(new File(compileROMFileBox.getText()));
 					rh.writeToROM(new File(compileBaseROMFileBox.getText()), getROM(), getLines());
 					JOptionPane.showMessageDialog(null, "Successfully compiled script to ROM!", "Success", JOptionPane.PLAIN_MESSAGE);
@@ -689,7 +698,6 @@ public class StarmanJr extends JFrame {
 		compileROMButton.setAction(compile);
 		compileROMButton.setText("Compile ->");
 		JPanel wholeCompileROMDialogPanel = new JPanel();
-		//wholeROMDialogPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		wholeCompileROMDialogPanel.add(compileROMWindowPanel, BorderLayout.CENTER);
 		wholeCompileROMDialogPanel.add(closeROMCompilePanelButton, BorderLayout.SOUTH);
 		compileROMDialog.add(wholeCompileROMDialogPanel);
@@ -1020,6 +1028,9 @@ public class StarmanJr extends JFrame {
 	public static File getScriptToCompile () {
 		return script;
 	}
+	public File getTable() {
+		return table;
+	}
 	public static void setBadNumberFlag() { badNumber = true; }
 	public static void unsetBadNumberFlag() { badNumber = false; }
 	public static boolean badNumberFlag() { return badNumber; }
@@ -1027,11 +1038,11 @@ public class StarmanJr extends JFrame {
 	// this saves the text to a certain filename ("save as" makes you choose, "save" uses the default)
 	public void save (String filenameToSaveTo) throws FileNotFoundException {
 		String toSave = "";
-		for (int i = 1; i < getNumberOfLines(); i++) {
-			toSave += getLineAt(i);
-		}
 		PrintWriter out = new PrintWriter(filenameToSaveTo);
-		out.println(toSave);
+		for (int i = 1; i < getNumberOfLines(); i++) {
+			toSave = getLineAt(i);
+			out.println(toSave);
+		}
 		// heh heh whoops this line is important
 		out.close();
 	}

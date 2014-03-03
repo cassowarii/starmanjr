@@ -75,7 +75,7 @@ public class ROMHelper {
 		// turn into byte array
 		System.out.print("Converting file to byte array...");
 		byte[] bytes = fileToByteArray(rom);
-		System.out.println("done");
+		System.out.println("done, size is "+bytes.length);
 		// locate end of meaningful data in file
 		System.out.print("Finding end of script pointer data in ROM...");
 		int pointerStart = 0xF27A90;
@@ -183,16 +183,12 @@ public class ROMHelper {
 		}
 		System.out.println("== CONVERTING TABLE ==");
 		for (int lineNum = 1; lineNum < lines.length; lineNum++) {
-			//System.out.print("L"+lineNum+" ");
-			//System.out.println("getting line to write from:");
-			//System.out.println(lines[lineNum]);
 			String lineToWrite = TextProcessor.getEditLine(lines, lineNum);
 			String hexLineNum = Integer.toString(lineNum-1, 16).toUpperCase();
 			while (hexLineNum.length() < 3) {
 				hexLineNum = "0"+hexLineNum;
 			}
 			hexLineNum = hexLineNum+"-E";
-			//System.out.print("line "+lineNum+" - ");
 			int lineLength = 0;
 			for (int i = 0; i < lineToWrite.length(); i++) {
 				byte byteToWrite = (byte)0x00;
