@@ -67,7 +67,7 @@ sub extract {
         $addr += $bytes[0];
         $addr += $bytes[1] << 8;
         $addr += $bytes[2] << 16;
-        last if $addr == 0x100000;
+        last LINE if $addr == 0x100000;
         unless ($addr == 0) { # it must be a real line
             CHARACTER: for (my $loc = $addr;; $loc++) {
                 seek $ROM, $loc, 0;
@@ -99,5 +99,5 @@ sub extract {
     }
     close $outfile;
     close $ROM;
-    print "done";
+    print "done\n";
 }
