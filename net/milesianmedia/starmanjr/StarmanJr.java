@@ -54,7 +54,7 @@ public class StarmanJr extends JFrame {
 
           // init menubar
           JMenuBar menubar = new JMenuBar();
-          
+
           // init icons
           ImageIcon iconOpen = new ImageIcon(getClass().getResource("images/open.png"));
           ImageIcon iconSave = new ImageIcon(getClass().getResource("images/save.png"));
@@ -78,7 +78,7 @@ public class StarmanJr extends JFrame {
      //          table = new File(tableURL.getPath());
      //     }
 
-          
+
           // init textareas
           final JTextArea oldTextArea = new JTextArea();
           oldTextArea.setLineWrap(true);
@@ -97,10 +97,10 @@ public class StarmanJr extends JFrame {
           commentTextArea.setEnabled(false);
           JScrollPane commentText = new JScrollPane(commentTextArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
           commentText.setPreferredSize(new Dimension(170, 53));
-          final JTextField currentLine = new JTextField(); 
+          final JTextField currentLine = new JTextField();
           currentLine.setPreferredSize(new Dimension(53, 24));
           currentLine.setEnabled(false);
-          
+
           // init menus
           JMenu file = new JMenu("File");
           file.setMnemonic(KeyEvent.VK_F);
@@ -113,7 +113,7 @@ public class StarmanJr extends JFrame {
           insertSymbol.setMnemonic(KeyEvent.VK_S);
           JMenu insertCode = new JMenu("Control Code");
           insertCode.setMnemonic(KeyEvent.VK_C);
-          
+
           // init panels
           final JPanel selectorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
           selectorPanel.setVisible(false);
@@ -140,12 +140,12 @@ public class StarmanJr extends JFrame {
 
           JPanel paddingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
           paddingPanel.setPreferredSize(new Dimension(100, 0));
-          
+
           JPanel commentSpacingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-          
+
           JPanel baseTogglePanel = new JPanel();
           baseTogglePanel.setLayout(new GridLayout(1, 2, 5, 5));
-          
+
           final JPanel openButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
           openButtonPanel.setPreferredSize(new Dimension(174, 53));
 
@@ -172,14 +172,14 @@ public class StarmanJr extends JFrame {
           settingsButton.setPreferredSize(new Dimension(24,24));
           JButton formatButton = new JButton(iconFmt);
           formatButton.setPreferredSize(new Dimension(24, 24));
-          
+
           // init actionlistener to exit; this is attached to the "file > exit" menu item and some other stuff too
           ActionListener alExit = new ActionListener() {
                public void actionPerformed(ActionEvent event) {
                     System.exit(0);
                }
           };
-          
+
           // set up the panels
           baseTogglePanel.add(decButton);
           baseTogglePanel.add(hexButton);
@@ -310,7 +310,7 @@ public class StarmanJr extends JFrame {
           final JMenuItem fileSave = new JMenuItem();
           final JMenuItem fileSaveAs = new JMenuItem();
           final JMenuItem fileCompileROM = new JMenuItem();
-          
+
           // open dialog
           Action openDialog = new AbstractAction() {
                public void actionPerformed(ActionEvent e) {
@@ -609,7 +609,7 @@ public class StarmanJr extends JFrame {
           };
           extractROMButton.setAction(extract);
           extractROMButton.setText("Extract ->");
-          
+
           JPanel wholeExtractROMDialogPanel = new JPanel();
           wholeExtractROMDialogPanel.add(extractROMWindowPanel, BorderLayout.CENTER);
           wholeExtractROMDialogPanel.add(closeROMExtractPanelButton, BorderLayout.SOUTH);
@@ -715,7 +715,7 @@ public class StarmanJr extends JFrame {
           JRadioButton width20 = new JRadioButton("20 characters");
           JLabel width20p2 = new JLabel("      (EB0, small M1+2 boxes)");
           width28.setSelected(true);
-          width28.setActionCommand("28"); 
+          width28.setActionCommand("28");
           width20.setActionCommand("20");
           width28.addActionListener(changePreviewWidth);
           width20.addActionListener(changePreviewWidth);
@@ -745,7 +745,7 @@ public class StarmanJr extends JFrame {
           prefsDialogPanel.add(scale1x);
           prefsDialogPanel.add(scale2x);
           prefsDialogPanel.add(closePrefsWindow);
-          settingsButton.addActionListener(new ActionListener() { 
+          settingsButton.addActionListener(new ActionListener() {
                public void actionPerformed(ActionEvent e) {
                     prefsDialog.setVisible(true);
                }
@@ -801,8 +801,8 @@ public class StarmanJr extends JFrame {
           file.add(fileExit);               // x Exit
 
           // insert actions
-          Action insertBracketSymbol = new AbstractAction () { public void actionPerformed (ActionEvent e) { 
-               insertBracketThing(editTextArea, e.getActionCommand()); 
+          Action insertBracketSymbol = new AbstractAction () { public void actionPerformed (ActionEvent e) {
+               insertBracketThing(editTextArea, e.getActionCommand());
           }};
 
           // insert > symbol
@@ -851,7 +851,7 @@ public class StarmanJr extends JFrame {
           JMenuItem iCN14 = new JMenuItem(); iCN14.setAction(insertBracketSymbol); iCN14.setActionCommand("03 14"); iCN14.setText("[03 14] Player");
           JMenuItem iCN15 = new JMenuItem(); iCN15.setAction(insertBracketSymbol); iCN15.setActionCommand("03 15"); iCN15.setText("[03 15] Fav. Food");
           JMenuItem iCN16 = new JMenuItem(); iCN16.setAction(insertBracketSymbol); iCN16.setActionCommand("03 16"); iCN16.setText("[03 16] Ninten/Party leader");
-          JMenuItem iCN1D = new JMenuItem(); iCN1D.setAction(insertBracketSymbol); iCN1D.setActionCommand("03 1D"); iCN1D.setText("[03 1D] Item"); 
+          JMenuItem iCN1D = new JMenuItem(); iCN1D.setAction(insertBracketSymbol); iCN1D.setActionCommand("03 1D"); iCN1D.setText("[03 1D] Item");
           JMenuItem iCN22 = new JMenuItem(); iCN22.setAction(insertBracketSymbol); iCN22.setActionCommand("03 22"); iCN22.setText("[03 22] Item/PSI used in battle");
           JMenuItem iCN3E = new JMenuItem(); iCN3E.setAction(insertBracketSymbol); iCN3E.setActionCommand("03 3E"); iCN3E.setText("[03 3E] Party leader");
           JMenuItem[] codeNames = {iCN10, iCN11, iCN12, iCN13, iCN14, iCN15, iCN16, iCN1D, iCN22, iCN3E}; for (int i = 0; i < codeNames.length; i++) { insertCodeNames.add(codeNames[i]); }
@@ -897,7 +897,7 @@ public class StarmanJr extends JFrame {
           insert.add(insertBreak);
 
           // format
-          Action loadFont = new AbstractAction() { public void actionPerformed(ActionEvent e) { 
+          Action loadFont = new AbstractAction() { public void actionPerformed(ActionEvent e) {
                int picked = filechooser.showOpenDialog(null);
                if (picked == JFileChooser.APPROVE_OPTION) {
                     try {
@@ -912,7 +912,7 @@ public class StarmanJr extends JFrame {
                }
           }};
           Action resetFont = new AbstractAction() { public void actionPerformed(ActionEvent e) { previewFrame.setFontImg(previewFont); }};
-          Action stripBreaks = new AbstractAction() { public void actionPerformed(ActionEvent e) { editTextArea.setText(editTextArea.getText().replace("[BREAK]", " ")); 
+          Action stripBreaks = new AbstractAction() { public void actionPerformed(ActionEvent e) { editTextArea.setText(editTextArea.getText().replace("[BREAK]", " "));
                                                                   editTextArea.setText(editTextArea.getText().replace(" [PAUSE]","[PAUSE]")); }};
           JMenuItem fontLoad = new JMenuItem();
           fontLoad.setAction(loadFont);
@@ -955,7 +955,7 @@ public class StarmanJr extends JFrame {
           add(textPanel, BorderLayout.NORTH);
           add(bottomPanel, BorderLayout.CENTER);
           pack();
-          
+
           // init window
           setTitle(generateTitle() + "v" + version);
           setSize(657, 354);
@@ -1074,7 +1074,7 @@ public class StarmanJr extends JFrame {
           private ImageIcon fontIcon;
           private int charWidth, scale;
           private String fontDecoder = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?<$*\"'():;,-./!=_|{}^%@ []>+";
-          public void setText(String t) { 
+          public void setText(String t) {
                text = t;
                text = text.replaceAll("(?i)\\[ALPHA]", "=");
                text = text.replaceAll("(?i)\\[BETA]", "_");
@@ -1131,7 +1131,7 @@ public class StarmanJr extends JFrame {
           public int getCharWidth() { return charWidth; }
           public void setScale(int s) { scale = s; }
           public int getScale() { return scale; }
-     
+
           public PreviewFrame (ImageIcon font, int width, int scale) {
                this.fontIcon = font;
                this.font = fontIcon.getImage();
@@ -1150,7 +1150,7 @@ public class StarmanJr extends JFrame {
                }
                return n;
           }
-     
+
           public void paintComponent (Graphics g) {
                int x = 1, y = 0, verticalFontOffset = 0, pauses = 0;
                boolean faded = false;

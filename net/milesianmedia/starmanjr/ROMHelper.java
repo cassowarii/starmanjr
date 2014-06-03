@@ -5,9 +5,9 @@ import java.util.regex.Pattern;
 import net.milesianmedia.starmanjr.TextProcessor;
 
 public class ROMHelper {
-    
+
     private FileInputStream fis;
-    private String[] charTable = new String[256];     // has to be String[] and not char[] because some entries (BREAK, DOUBLEZERO, etc.) 
+    private String[] charTable = new String[256];     // has to be String[] and not char[] because some entries (BREAK, DOUBLEZERO, etc.)
                             // are longer than 1 character :(
 
     public ROMHelper (File chtbl) {
@@ -69,7 +69,7 @@ public class ROMHelper {
             return null;
         }
     }
-    
+
     // reads from a ROM and outputs a script file
     public void readFromROM (File rom, String scriptPath) throws IOException {
         // turn into byte array
@@ -106,7 +106,7 @@ public class ROMHelper {
             if (address == 0x100000) break; // this means we've reached the similar-looking-to-the-program-but-not-script-pointer area of the ROM
             if (address != 0x00) {
                 // it's a "real" line
-                for (int loc = address; ; loc++) { 
+                for (int loc = address; ; loc++) {
                     if (!writingCC) {
                         if (bytes[loc] == 0x0) {
                             // EOL
@@ -144,7 +144,7 @@ public class ROMHelper {
                         writeable += digit + "]";
                         writingCC = false;
                     }
-        
+
                 }
             } else {
                 // it's a 0 pointer
@@ -288,7 +288,7 @@ public class ROMHelper {
                     errors++;
                 }
                 // at the end of every character-finding loop
-                if (writeByte) {    
+                if (writeByte) {
                     romAsBytes[start+offset] = byteToWrite;
                     lineLength++;
                     offset++;
