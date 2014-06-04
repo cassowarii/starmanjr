@@ -1,10 +1,11 @@
 #!/usr/bin/perl
+package RomHelper::Extract;
 # The same thing as the "extract" part of ROMHelper, but written in Perl.
 # Let's see how much smaller it gets.
 # Also, I want to practice my Perl skillz.
 use strict;
 use warnings;
-use base 'Exporter';
+use parent 'Exporter';
 our @EXPORT = qw(extract);
 our @EXPORT_OK = qw(extract tbl extract_file);
 
@@ -58,10 +59,11 @@ sub extract_file {
     $eod += 4 << ($precision + 1);
     printf "done, EOD seems to be at 0x%X\n", $eod;
     my $string = "";
-    my $line = "000";
+    my $line = 0;
     my $is_cc = 0;
     print "Extracting script from file...";
     LINE: for (my $ptrLoc = $ptrStart; $ptrLoc < $eod; $ptrLoc += 4) {
+        my $fmtLine = sprintf("%03X", $line);
         my $addr = 0;
         seek $ROM, $ptrLoc, 0;
         read $ROM, my $byteString, 4;
@@ -76,8 +78,8 @@ sub extract_file {
                 read $ROM, my $temp, 2;
                 my @locBytes = unpack "W*", $temp;
                 if ($locBytes[0] == 0) {
-                    print { $outfile } $line, ": ", $string, "\n";
-                    print { $outfile } $line, "-E: ", $string, "\n";
+                    print { $outfile } $fmtLine, ": ", $string, "\n";
+                    print { $outfile } $fmtLine, "-E: ", $string, "\n";
                     $string = "";
                     $line++;
                     last CHARACTER;
@@ -98,8 +100,8 @@ sub extract_file {
             }
         } else {
             # weird random 00 00 00 00 pointer
-            print { $outfile } $line, ": ", $string, "\n";
-            print { $outfile } $line, "-E: ", $string, "\n";
+            print { $outfile } $fmtLine, ": ", $string, "\n";
+            print { $outfile } $fmtLine, "-E: ", $string, "\n";
             $string = "";
             $line++;
         }
