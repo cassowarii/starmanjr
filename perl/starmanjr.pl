@@ -16,21 +16,19 @@ die "Improper number of arguments given.\n" unless @ARGV % 2 == 0;
 my %args = @ARGV;
 my $mode = "";
 my ($infile, $basefile);
-if (exists $args{'-e'} || exists $args{'--extract'}) {
-    $infile = $args{'-e'} || $args{'--extract'};
+if (exists $args{'-e'} // exists $args{'--extract'}) {
+    $infile = $args{'-e'} // $args{'--extract'};
     $mode = "e";
-} elsif (exists $args{'-i'} || exists $args{'--insert'}) {
-    $infile = $args{'-i'} || $args{'--insert'};
-    $basefile = $args{'-b'} || $args{'--base'} or die "You must provide a base file for compilation!\n";
+} elsif (exists $args{'-i'} // exists $args{'--insert'}) {
+    $infile = $args{'-i'} // $args{'--insert'};
+    $basefile = $args{'-b'} // $args{'--base'} or die "You must provide a base file for compilation!\n";
     $mode = "i";
 }
 die $usage unless $mode;
-my $tablefile = $args{'-t'} || $args{'--table'} || 'resources/eng_table.txt';
+my $tablefile = $args{'-t'} // $args{'--table'} // 'resources/eng_table.txt';
 
 if ($mode eq "e") {
-    #RomHelper::extract($infile, $outfile, $tablefile);
     extract($infile, $outfile, $tablefile);
 } else {
-    #RomHelper::insert($infile, $outfile, $tablefile);
     insert($infile, $outfile, $basefile, $tablefile);
 }
