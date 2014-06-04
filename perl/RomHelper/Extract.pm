@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-#package ROMHelper::Extract;
 # The same thing as the "extract" part of ROMHelper, but written in Perl.
 # Let's see how much smaller it gets.
 # Also, I want to practice my Perl skillz.
@@ -13,10 +12,6 @@ sub extract {
     my ($from, $to, $tableFilename) = @_;
     # For dealing with the char table which is formatted Windows-style:
     local $/ = "\r\n";
-    #my $usage = "usage: $0 <ROM file> <output file> [<table file>]\n";
-    #my $filename = shift @ARGV or die $usage;
-    #my $outFilename = shift @ARGV or die $usage;
-    #my $tableFilename = shift @ARGV || "resources/eng_table.txt";
     open(my $ROM, "<", $from) or die "Couldn't find ROM file $from: $!.\n";
     open(my $outfile, ">", $to) or die "Couldn't create output file $to: $!.\n";
     open(my $table, "<", $tableFilename) or die "Couldn't load table file $tableFilename: $!.\n";
