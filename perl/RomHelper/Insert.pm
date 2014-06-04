@@ -50,9 +50,11 @@ sub tbl {
 sub insert_file {
     # For dealing with files output by this program, Unix-style:
     local $/ = "\n";
+    print "Compiling to ROM...";
     my ($ROM, $script, $charTable) = @_;
     my $lineNum = 0;
     my $offset = 0;
+    my $errors = 0;
     my $start = 0xF7EA00;
     my $ptrStart = 0xF27A90;
     while (my $line = <$script>) {
@@ -88,11 +90,11 @@ sub insert_file {
                     push @bytes, hex $1;
                 }
             } else {
-                print "Unrecognized character/control code $char at line $. of script file.\n";
+                print "\nUnrecognized character/control code $char at line $. of script file.";
+                $errors++;
             }
         }
         push @bytes, 0 if scalar @bytes > 0;
-        print scalar @bytes, " ";
 
         # and lastly, write it to the ROM
         if (scalar @bytes > 0) {
@@ -115,4 +117,13 @@ sub insert_file {
 
         $lineNum++;
     }
+    if ($errors == 1) {
+        print "\n1 error was";
+    } elsif ($errors > 1) {
+        print "\n$errors errors were";
+    }
+    if ($errors) {
+        print " found. You ROM has been compiled, but its content may not be exactly what you desire.\n";
+    }
+    print "done\n";
 }
