@@ -1,44 +1,50 @@
 #!/usr/bin/perl
+#package ROMHelper::Extract;
 # The same thing as the "extract" part of ROMHelper, but written in Perl.
 # Let's see how much smaller it gets.
 # Also, I want to practice my Perl skillz.
 use strict;
 use warnings;
-
-# For dealing with the char table which is formatted Windows-style:
-$/ = "\r\n";
-
-my $usage = "usage: $0 <ROM file> <output file> [<table file>]\n";
-my $filename = shift @ARGV or die $usage;
-my $outFilename = shift @ARGV or die $usage;
-my $tableFilename = shift @ARGV || "resources/eng_table.txt";
-open(my $ROM, "<", $filename) or die "Couldn't find ROM file $filename: $!.\n";
-open(my $outfile, ">", $outFilename) or die "Couldn't create output file $outFilename: $!.\n";
-open(my $table, "<", $tableFilename) or die "Couldn't load table file $tableFilename: $!.\n";
-binmode($ROM);
-
-my @charTable;
-print "Parsing character table: $tableFilename...";
-while (my $line = <$table>) {
-    chomp $line;
-    # remove hex code
-    $line =~ s/.* //;
-    # convert _ to space
-    $line = " " if $line eq "_";
-    # detect wonky CCs and fix them
-    $line = "[".$line."]" if $line =~ /^[^\[].*[^\]]$/ && length $line > 1;
-    # make 03 work better
-    $line = "[03 " if $line eq "[03]";
-    push @charTable, $line;
-}
-
-print scalar @charTable," entries\n";
-
-extract($ROM, $outfile);
+use base 'Exporter';
+our @EXPORT = qw(extract);
+our @EXPORT_OK = qw(extract tbl extract_file);
 
 sub extract {
+    my ($from, $to, $tableFilename) = @_;
+    # For dealing with the char table which is formatted Windows-style:
+    local $/ = "\r\n";
+    #my $usage = "usage: $0 <ROM file> <output file> [<table file>]\n";
+    #my $filename = shift @ARGV or die $usage;
+    #my $outFilename = shift @ARGV or die $usage;
+    #my $tableFilename = shift @ARGV || "resources/eng_table.txt";
+    open(my $ROM, "<", $from) or die "Couldn't find ROM file $from: $!.\n";
+    open(my $outfile, ">", $to) or die "Couldn't create output file $to: $!.\n";
+    open(my $table, "<", $tableFilename) or die "Couldn't load table file $tableFilename: $!.\n";
+    binmode($ROM);
+    extract_file($ROM, $outfile, tbl($table));
+}
+
+sub tbl {
+    my $tableFile = shift;
+    my @charTable;
+    while (my $line = <$tableFile>) {
+        chomp $line;
+        # remove hex code
+        $line =~ s/.* //;
+        # convert _ to space
+        $line = " " if $line eq "_";
+        # detect wonky CCs and fix them
+        $line = "[".$line."]" if $line =~ /^[^\[].*[^\]]$/ && length $line > 1;
+        # make 03 work better
+        $line = "[03 " if $line eq "[03]";
+        push @charTable, $line;
+    }
+    return @charTable;
+}
+
+sub extract_file {
     print "finding end of script data in ROM...";
-    my ($ROM, $outfile) = @_;
+    my ($ROM, $outfile, @charTable) = @_;
     my $ptrStart = 0xF27A90;
     my $eod = $ptrStart;
     my $precision = 9;
@@ -59,6 +65,7 @@ sub extract {
     my $string = "";
     my $line = "000";
     my $is_cc = 0;
+    print "Extracting script from file...";
     LINE: for (my $ptrLoc = $ptrStart; $ptrLoc < $eod; $ptrLoc += 4) {
         my $addr = 0;
         seek $ROM, $ptrLoc, 0;
@@ -86,7 +93,12 @@ sub extract {
                     $string .= sprintf ("[03 %02X]", $locBytes[1]);
                     $loc++; # skip over second part of CC
                 } else { # normal character
-                    $string .= $charTable[$locBytes[0]];
+                    if (defined $charTable[$locBytes[0]]) {
+                        $string .= $charTable[$locBytes[0]];
+                    } else {
+                        print "Byte value $locBytes[0] doesn't correspond to a valid character.\n
+                            Ensure that the character table file has all byte values listed.\n";
+                    }
                 }
             }
         } else {
@@ -101,3 +113,4 @@ sub extract {
     close $ROM;
     print "done\n";
 }
+1;
