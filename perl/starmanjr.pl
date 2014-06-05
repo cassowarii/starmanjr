@@ -16,10 +16,10 @@ die "Improper number of arguments given.\n" unless @ARGV % 2 == 0;
 my %args = @ARGV;
 my $mode = "";
 my ($infile, $basefile);
-if (exists $args{'-e'} // exists $args{'--extract'}) {
+if (exists $args{'-e'} || exists $args{'--extract'}) {
     $infile = $args{'-e'} // $args{'--extract'};
     $mode = "e";
-} elsif (exists $args{'-i'} // exists $args{'--insert'}) {
+} elsif (exists $args{'-i'} || exists $args{'--insert'}) {
     $infile = $args{'-i'} // $args{'--insert'};
     $basefile = $args{'-b'} // $args{'--base'} or die "You must provide a base file for compilation!\n";
     $mode = "i";
