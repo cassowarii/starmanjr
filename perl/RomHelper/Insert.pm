@@ -3,7 +3,6 @@
 package RomHelper::Insert;
 use strict;
 use warnings;
-use List::Util qw(first);
 use File::Copy;
 use parent 'Exporter';
 our @EXPORT = qw(insert);
@@ -94,36 +93,31 @@ sub insert_file {
                 $errors++;
             }
         }
-        push @bytes, 0 if scalar @bytes > 0;
 
         # and lastly, write it to the ROM
         if (scalar @bytes > 0) {
+            push @bytes, 0;
             seek $ROM, $start + $offset, 0;
-            my $byteString = pack("C*", @bytes);
-            print { $ROM } $byteString;
+            print { $ROM } pack("C*", @bytes);
             seek $ROM, $ptrStart + $lineNum * 4, 0;
             my $ptrLoc = 0x08000000 + $start + $offset;
             my @ptrBytes =
                 (($ptrLoc & 0x000000FF)      , ($ptrLoc & 0x0000FF00) >> 8,
                  ($ptrLoc & 0x00FF0000) >> 16, ($ptrLoc & 0xFF000000) >> 24);
-            my $ptrByteString = pack("C*", @ptrBytes);
-            print { $ROM } $ptrByteString;
+            print { $ROM } pack("C*", @ptrBytes);
             $offset += scalar @bytes;
         } else {
             seek $ROM, $ptrStart + $lineNum * 4, 0;
-            my $ptrByteString = pack("C*", 0, 0, 0, 0);
-            print { $ROM } $ptrByteString;
+            print { $ROM } pack("C*", 0, 0, 0, 0);
         }
 
         $lineNum++;
     }
-    if ($errors == 1) {
-        print "\n1 error was";
-    } elsif ($errors > 1) {
-        print "\n$errors errors were";
-    }
     if ($errors) {
-        print " found. You ROM has been compiled, but its content may not be exactly what you desire.\n";
+        print "\n".($errors == 1 ? "1 error was" : "$errors errors were")
+            ." found. You ROM has been compiled, but its content may not be exactly what you desire.\n";
+    } else {
+        print "done, no errors\n";
     }
-    print "done\n";
 }
+1;
