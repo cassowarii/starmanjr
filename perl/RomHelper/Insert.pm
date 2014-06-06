@@ -8,15 +8,17 @@ use parent 'Exporter';
 our @EXPORT = qw(insert);
 our @EXPORT_OK = qw(insert tbl insert_file);
 
+use constant SCRIPT_START => 0xF7EA00;
+use constant POINTER_START => 0xF27A90;
+
 sub insert {
     my ($from, $to, $baseFilename, $tableFilename) = @_;
     # For dealing with the char table which is formatted Windows-style:
     local $/ = "\r\n";
-    open(my $script, "<", $from) or die "Couldn't find script file $from: $!.\n";
-    open(my $table, "<", $tableFilename) or die "Couldn't load table file $tableFilename: $!.\n";
-    open(my $base, "<", $baseFilename) or die "Couldn't open base ROM $baseFilename: $!.\n";
+    open my $script, '<', $from or die "Couldn't find script file $from: $!.\n";
+    open my $table, '<', $tableFilename or die "Couldn't load table file $tableFilename: $!.\n";
     copy($baseFilename, $to) or die "Couldn't create ROM file $to: $!.\n";
-    open(my $ROM, "+<", $to) or die "Copied base file successfully, but couldn't open $to: $!.\n";
+    open my $ROM, '+<', $to or die "Copied base file successfully, but couldn't open $to: $!.\n";
     binmode($ROM);
     insert_file($ROM, $script, tbl($table));
 }
@@ -33,11 +35,11 @@ sub tbl {
         my $toInsert = $2;
         if (length $toInsert > 1) {
             # must be a control code
-            $toInsert = "[".$toInsert."]" if $toInsert !~ /\[.+\]/;
+            $toInsert = '['.$toInsert.']' if $toInsert !~ /\[.+\]/;
             $charTable{$toInsert} = $code;
             next;
         }
-        $toInsert = " " if $toInsert eq "_";
+        $toInsert = q{ } if $toInsert eq "_";
         next if $charTable{$toInsert}; # we've already found a code for it; probably a space
         # put it in the table
         $charTable{$toInsert} = $code;
@@ -54,21 +56,19 @@ sub insert_file {
     my $lineNum = 0;
     my $offset = 0;
     my $errors = 0;
-    my $start = 0xF7EA00;
-    my $ptrStart = 0xF27A90;
     while (my $line = <$script>) {
         chomp $line;
         # If it's not an edited line, don't bother with it
         next if $line !~ /[0-9A-F]{3}-E: .*/;
         # If it is, remove the prefix
         $line =~ s/[0-9A-F]{3}-E: //;
-        my @tokens = split /(\[|\])/, $line;
+        my @tokens = split /([\[\]])/, $line;
 
         # tokenize!
         my $index = 0;
         until (not defined $tokens[$index]) {
-            if ($tokens[$index] eq "[") {
-                splice @tokens, $index, 3, "[".$tokens[$index+1]."]";
+            if ($tokens[$index] eq '[') {
+                splice @tokens, $index, 3, '['.$tokens[$index+1].']';
                 $index++;
             } else {
                 my $len = length $tokens[$index];
@@ -97,17 +97,19 @@ sub insert_file {
         # and lastly, write it to the ROM
         if (scalar @bytes > 0) {
             push @bytes, 0;
-            seek $ROM, $start + $offset, 0;
+            seek $ROM, SCRIPT_START + $offset, 0;
             print { $ROM } pack("C*", @bytes);
-            seek $ROM, $ptrStart + $lineNum * 4, 0;
-            my $ptrLoc = 0x08000000 + $start + $offset;
+            seek $ROM, POINTER_START + $lineNum * 4, 0;
+            # 0x08000000 is the difference between GBA RAM and ROM
+            my $ptrLoc = 0x08000000 + SCRIPT_START + $offset;
             my @ptrBytes =
+                # little-endian systems ftw
                 (($ptrLoc & 0x000000FF)      , ($ptrLoc & 0x0000FF00) >> 8,
                  ($ptrLoc & 0x00FF0000) >> 16, ($ptrLoc & 0xFF000000) >> 24);
             print { $ROM } pack("C*", @ptrBytes);
             $offset += scalar @bytes;
         } else {
-            seek $ROM, $ptrStart + $lineNum * 4, 0;
+            seek $ROM, POINTER_START + $lineNum * 4, 0;
             print { $ROM } pack("C*", 0, 0, 0, 0);
         }
 
