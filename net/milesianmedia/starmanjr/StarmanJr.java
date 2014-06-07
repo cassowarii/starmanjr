@@ -6,9 +6,6 @@ import java.lang.NumberFormatException;
 
 import java.util.Random;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
