@@ -13,8 +13,6 @@ use constant POINTER_START => 0xF27A90;
 
 sub insert {
     my ($from, $to, $baseFilename, $tableFilename) = @_;
-    # For dealing with the char table which is formatted Windows-style:
-    local $/ = "\r\n";
     open my $script, '<', $from or die "Couldn't find script file $from: $!.\n";
     open my $table, '<', $tableFilename or die "Couldn't load table file $tableFilename: $!.\n";
     copy($baseFilename, $to) or die "Couldn't create ROM file $to: $!.\n";
@@ -29,6 +27,8 @@ sub tbl {
     print "Compiling character table...";
     while (my $line = <$tableFile>) {
         chomp $line;
+        # remove any leftover \r\n's
+        $line =~ s/\r//;
         # capture values for hash
         $line =~ /(.+) (.+)/;
         my $code = hex $1;

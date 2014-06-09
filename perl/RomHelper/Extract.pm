@@ -11,8 +11,6 @@ our @EXPORT_OK = qw(extract tbl extract_file);
 
 sub extract {
     my ($from, $to, $tableFilename) = @_;
-    # For dealing with the char table which is formatted Windows-style:
-    local $/ = "\r\n";
     open(my $ROM, "<", $from) or die "Couldn't find ROM file $from: $!.\n";
     open(my $outfile, ">", $to) or die "Couldn't create output file $to: $!.\n";
     open(my $table, "<", $tableFilename) or die "Couldn't load table file $tableFilename: $!.\n";
@@ -25,6 +23,8 @@ sub tbl {
     my @charTable;
     while (my $line = <$tableFile>) {
         chomp $line;
+        # remove remnants of Windows on unix-based systems
+        $line =~ s/\r//;
         # remove hex code
         $line =~ s/.* //;
         # convert _ to space
